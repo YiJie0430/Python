@@ -74,7 +74,7 @@ class R_Flow:
             try:
               data=lWaitCmdTerm(self.term,"tail -n 1 %s"%mfg_rcd,self.promp,3)
               if 'No such file or directory' in data or list(data) == []: return self.CrtMfgRecord(self.term,['0' for n in xrange(len(test_item)+1)],mfg_rcd)
-              data=data.split(self.promp)[0].strip()             
+              data=data.split(mfg_rcd)[-1].split(self.promp)[0].strip()             
               value=list(data)
               if not self.init: 
                  value[-1]=str(int(value[-1])+1)

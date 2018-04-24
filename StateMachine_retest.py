@@ -408,7 +408,7 @@ class MainFunction(threading.Thread):
                  #self.parent.parent.DUT_LIST[self.dutid][-1].Enable( False ) 
                  #self.SetPanel('start')
                  self.log=open('%s%s.%s'%(self.parent.logPath,self.labels[0],self.StationName),'w')
-                 self.Flog=open('%s%s_fusion.%s'%(self.parent.logPath,self.labels[0],self.StationName),'a')
+                 self.Flog=open('%s%s_.%s'%(self.parent.logPath,self.labels[0],self.StationName),'a')
                  self.itemlog=list()
                  self.Return=[self.parent.parent.CheckLED_Dialog,self.parent.parent.emp]
                  self.AFILog=None
@@ -453,18 +453,18 @@ class MainFunction(threading.Thread):
                             if int(self.parent.Retest_opt):
                                 self.retest_flag=value[0]
                                 self.retest=R_Flow(self.term_record,self.parent.promp,self.retest_init)
-                                self.rcd=self.retest.GetMfgRecord(self.term_record,self.parent.Flows,self.parent.mfgrcd); print (self.rcd)
+                                self.rcd=self.retest.GetMfgRecord(self.term_record,self.parent.Flows,self.parent.mfgrcd); #print (self.rcd)
                                 self.retest.SetMfgRecord(self.term_record,self.rcd,int(idx-1),1,self.parent.mfgrcd)                            
                             if not self.retest_init and not int(self.rcd[-1]) and self.AFILog_copy:
                                 self.retest_init=1
-                                self.Flog=open('%s%s_fusion.%s'%(self.parent.logPath,self.labels[0],self.StationName),'w')
+                                self.Flog=open('%s%s_.%s'%(self.parent.logPath,self.labels[0],self.StationName),'w')
                                 for log in self.AFILog['start']:
                                     self.term_record << "echo '%s' >> %s"%(log,self.parent.mfglog);time.sleep(0.01)
                                     self.Flog.write(log)
                                     self.Flog.flush()                           
                             if not self.retest_init and int(self.rcd[-1]) and self.AFILog_copy:
                                self.retest_init=1                                
-                               self.Flog=open('%s%s_fusion.%s'%(self.parent.logPath,self.labels[0],self.StationName),'a')
+                               self.Flog=open('%s%s_.%s'%(self.parent.logPath,self.labels[0],self.StationName),'a')
                                stime=''.join(self.AFILog['start']).split('Start Time :')[-1].split('MAC Address :')[0].strip()
                                self.term_record << "echo '-----------retest %s, start time: %s-----------' >> %s"%(self.rcd[-1],stime,self.parent.mfglog);time.sleep(0.01)
                                self.Flog.write('\n-----------retest %s, start time: %s-----------\n'%(self.rcd[-1],stime))
