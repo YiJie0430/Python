@@ -1,0 +1,22 @@
+Noise Measure Tool
+===============================================================
+Version: develop_R1
+History:
+         develop version initial version10/09/2013
+         develop_R1 version noise table named by freq. and power. 08/01/2015
+
+Author:  YiJie(jasonwang@hc.hitrontech.com)
+===============================================================
+Equnement: SA x 1(E4411B with GPIO Interface)
+           NoiseSource x 1
+           Programmable Attenuator x 1 (Control by Parallel Port)
+
+Procedure: 1. select Freq. Range 
+           2. keyin NoiseSource BandPower and Bandwideth
+           3. keyin the chain path
+           4. Start
+
+Note: 
+*default BandPower/Bandwidth : -5dBmv/6MHz 
+*MXL267/214/277/278 : 15dBmv/6MHz 
+*MT2170 : 13dBmv/100MHz 

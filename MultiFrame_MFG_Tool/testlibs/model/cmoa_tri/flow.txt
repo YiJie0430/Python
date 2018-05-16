@@ -1,0 +1,15 @@
+loop 100 { 
+ 
+   loop 2{
+     if loop 2{
+        compare list[0] and list[1]; 
+        if list[0]==list[1]{ raise"error"}
+        else {load code; smart power reboot;}  
+        }
+     else{
+       md5checksum to list[0];
+       DS_Cal;
+       md5checksum to list[1];
+       smart power reboot}
+       
+     
