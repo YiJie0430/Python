@@ -2,7 +2,7 @@ import sys,os,string,time,telnetlib,re,serial,subprocess,ctypes,_winreg,bz2,thre
 from errno import ESHUTDOWN
 from win32file import ReadFile, WriteFile
 from win32pipe import PeekNamedPipe
-import win32api,msvcrt,socket
+import win32api,msvcrt,Power,ColorConsole,socket,Snmp
 from sysVars import *
 import win32pdh,win32con
 #import numpy,mechanize
@@ -83,36 +83,29 @@ def telnet_negotiation(sock, command, option):
         response=WONT
         print_response='WONT'
     if command==DO:
-        #print "TELNET Debug: Received request to DO %s, sending %s" % \
-        #    (received_option,print_response)
+        print "TELNET Debug: Received request to DO %s, sending %s" % \
+            (received_option,print_response)
         sock.sendall("%s%s%s" % (IAC, response, option))
     elif command==DONT:
-        pass
-        #print 'TELNET Debug: Received the DONT command'
+        print 'TELNET Debug: Received the DONT command'
     elif command==WILL:
-        #print 'TELNET Debug: Received the WILL command'
-        pass
+        print 'TELNET Debug: Received the WILL command'
     elif command==WONT:
-        #print 'TELNET Debug: Received the WONT command'
-        pass
+        print 'TELNET Debug: Received the WONT command'
     elif command==theNULL:
-        #print 'TELNET Debug: Received the NULL command'
-        pass
+        print 'TELNET Debug: Received the NULL command'
     elif command==SB:
-        #print 'TELNET Debug: Received the SB command'
-        #print ord(option)
-        #print self.conn.read_sb_data()
-        pass
+        print 'TELNET Debug: Received the SB command'
+        print ord(option)
+        print self.conn.read_sb_data()
     elif command==SE:
-        #print 'TELNET Debug: Received the SE command'
-        #print repr(self.conn.read_sb_data())
-        self.conn.read_sb_data()
+        print 'TELNET Debug: Received the SE command'
+        print repr(self.conn.read_sb_data())
         sock.sendall("%s%s%s%sDEC-VT100%s%s" % \
             (IAC,SB,TTYPE,chr(0),IAC,SE))
-        #print 'TELNET Debug: Sent all'
+        print 'TELNET Debug: Sent all'
     else:
-        #print 'TELNET Debug: Received something, don''t know what.', ord(option)
-        pass
+        print 'TELNET Debug: Received something, don''t know what.', ord(option)
     return
 
 ################################################################################
@@ -348,17 +341,17 @@ class Controller(object):
 
 
 class Terminal(Controller):
-    LOST_CONNECT = "** Fail Connection **"
+    LOST_CONNECT = "**Fail Connection **"
     def __init__(self,host,port):
         self.log = DEFAULT_LOG
         self.host = host
-        self.cr = "\r"   # default Carriage Return
+        self.cr = "\n"   # default Carriage Return
         self.buffer_size = 32768   # default waiting buffer size
         self.port = port
         self.tn = None
 
     def _init(self):
-        pass
+        return self.tn
     
     def _get(self):
         pass
@@ -385,8 +378,8 @@ class Terminal(Controller):
         if self.tn == 0:
             print self.LOST_CONNECT
             return ""
-        time.sleep(0.01)
-        try:
+        r=''
+        try:            
             r = self._get()
         except:
             self.tn = 0
@@ -394,7 +387,7 @@ class Terminal(Controller):
             return ""
         if self.log&2:
             print "[GET]:",r
-        #print 'htx_local:', r
+        #print 'wifi_local', r
         return r
 
     def set(self,value):
@@ -406,12 +399,12 @@ class Terminal(Controller):
         if self.log&1:
             print "[SET]:",value
         try:
-            r = self._set(value+self.cr)
+            self._set(value+self.cr)
         except:
             self.tn = 0
             print self.LOST_CONNECT
             return 0
-        return r
+        #return r
 
     def close(self,force=1):
         if self.tn:
@@ -429,28 +422,28 @@ class Terminal(Controller):
             return (False, "")
         prompt = str(prompt)
         timeout += time.time()+0.1
-        response = ""
+        response = str()
         count = 0 
         while time.time() < timeout and self.tn:
             count += 1
             #if not (count&3):
-            #    print ".",
+            #    print "+",
             if len(response)>self.buffer_size:
                 response = response[-len(prompt):]
-            d = self.get()
-            response += d
+            d = self.get(); #raw_input(d)
+            response += d; 
             if not prompt:
                 if not d:
-                    return (False, response)
+                    return (True, response)
             else:
                 if prompt in response:
                     #if count >= 3:  print
-                    return (False, response)
-            time.sleep(0.1)
+                    return (True, response)
+            #time.sleep(0.1)
         #if count >= 3: print
         if self.log&1:
             print "Terminal: Timeout"
-        return (True, response)
+        return (False, response)
 
     def __del__(self):
         self.close()
@@ -508,13 +501,18 @@ class Telnet(Terminal):
     def _get(self):
         return self.tn.read_very_eager()
 
-    def _set(self,value):
+    def prv_set(self,value):
         if value[:-1]:self.tn.write(value[:-1])
         #for i in value:
         #    self.tn.write(i)
         time.sleep(0.05)
         self.tn.write(value[-1])
         return len(value)
+
+    def _set(self,value):
+        self.tn.write(value)
+        time.sleep(0.01)
+        
 
 
 
@@ -585,19 +583,10 @@ class SerialTTY(Terminal):
             self.tn = 0
 
     def _get(self):
-        buf = ""
-        while 1:
-            count = self.tn.inWaiting()
-            if not count:
-                break
-            buf += self.tn.read(count)
-        return buf
-
-    def _get(self):
         buf = str()
         wait=0
         while wait<2:
-            time.sleep(0.2)
+            time.sleep(0.05)
             count = self.tn.inWaiting()
             if not count: wait+=1
             else: 
@@ -607,7 +596,7 @@ class SerialTTY(Terminal):
 
     def _set(self,value):
         self.tn.write(value)
-        return len(value)
+        #return len(value)
 
 LEFT_CCU = 0
 RIGHT_CCU = 1

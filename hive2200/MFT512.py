@@ -381,16 +381,19 @@ def CheckBootUp(func):
         test_time = time.time()
         for count in range(2):
             if IsConnect(dut_ip,timeout=40):
-               term = htx_local.SerialTTY(comport,115200)
+               #term = htx_local.SerialTTY(comport,115200)
+               term = htx_local.Telnet(dut_ip)
             else: raise Except("Ping DUT Failed") 
-            term.get()
-            term << '\n'
+            term.wait('#',3)
             term << 'pmf -e'
+            time.sleep(0.1)
             data = term.get()
             args[0].SendMessage(data,args[4])
             if 'already in factory mode' in data:
                 lWaitCmdTerm(term,'pmf -i','Erasing /dev/mtd7',5)
                 time.sleep(2)
+                lWaitCmdTerm(term,'mtd erase /dev/mtd14','Erasing /dev/mtd14',5)
+                time.sleep(1)
                 break
             if count == 1:
                 raise Except("Check Mode Failed")
